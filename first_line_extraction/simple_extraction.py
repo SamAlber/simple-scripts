@@ -11,7 +11,7 @@ import os # Importing the os module to check if path exists
 
 def get_first_line(path): # A function that receives the path, 'with open' gets the file located in this path and opens it in read! 
 
-    with open(path, 'r') as file:
+    with open(path, 'r') as file: 
         first_line = file.readline().strip()
 
     return first_line
