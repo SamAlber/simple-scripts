@@ -23,13 +23,13 @@ def parse_log(file_path): # First step: Parsing the log to create a disctionary 
 
             match = pattern.search(line) # Creates a match object of the search 
 
-            if match: # Match = true, None = False  
+            if match: # (None = False)
 
-                timestamp_str, action, transaction_id = match.groups() # Creating a tuple from the match object and passing the elemnts in a sequence to the variables 
+                timestamp_str, action, transaction_id = match.groups() # Creating a tuple from the match object and passing the elements captured with () with REGEX in a sequence to the variables 
 
-                timestamp = datetime.strptime(timestamp_str, '%H:%M:%S.%f') # Will create a datetime object from the time that we had in [] timestamp_str (%f represents ms)
+                timestamp = datetime.strptime(timestamp_str, '%H:%M:%S.%f') # Will create a datetime object from the time string that we have in timestamp_str (%f represents ms)
                     
-                if transaction_id not in transactions: # Adding new logs during the iteration
+                if transaction_id not in transactions: # Adding only new logs during the iteration
 
                     transactions[transaction_id] = {}
                     
@@ -57,14 +57,14 @@ def find_fastest_transaction(transactions): # Second step : Calculation
     
     for transaction_id, times in transactions.items(): 
         """
-            #Creates a view object (tuple-like but but not the exactly a tuple like in .groups() ) of the key and it's corresponding value 
-            (In this case another dictionary with start and end that contain the datetime object each)
+            #Creates a view object (tuple-like but but not the exact tuple like in .groups() ) of the key and it's corresponding value 
+            (In this case another dictionary {'start': datetime_object1, 'end': datetime_object2} per key (id))
 
          """
 
         if 'start' in times and 'end' in times:
 
-            duration = (times['end'] - times['start']).total_seconds() * 1000  # convert to milliseconds with total_seconds() that retrives the numerical value from the datetime object
+            duration = (times['end'] - times['start']).total_seconds() * 1000  # convert to milliseconds with total_seconds() that retrives the numerical value from the datetime object (after calculation between objects)
 
             if min_time == None or duration < min_time: 
                 min_time = duration 
