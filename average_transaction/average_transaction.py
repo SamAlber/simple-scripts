@@ -9,46 +9,50 @@ This script prompts the user for a file path and calculates the average transact
 
 import os
 import re
-from datetime import datetime # Importing datetime class from the datetime module (we need the strptime function which is located within the class )
+from datetime import datetime
 
-pattern = re.compile(r'\[(.*?)\] Transaction (Start|End) ID: (\d+)') # We will use .compile to create a regex pattern object that we will use in parse_log 
+# Compiling a regex pattern to match the log entries for transaction begun and done
+pattern = re.compile(r'(\d{2}:\d{2}:\d{2}\.\d{3}).*?transaction (\d+) (begun)|(\d{2}:\d{2}:\d{2}\.\d{3}).*?transaction (done), id=(\d+)')
 
-
-
-def parse_log(file_path): # First step: Parsing the log to create a disctionary for future calculations 
-
+def parse_log(file_path):
+    """
+    First step: Parsing the log to create a dictionary for future calculations.
+    This function reads the log file, matches entries using the regex pattern,
+    and stores the start and end times of each transaction in a dictionary.
+    """
     transactions = {}
 
     with open(file_path, 'r') as file:
-
         for line in file:
+            match = pattern.search(line)  # Creates a match object from the search
 
-            match = pattern.search(line) # Creates a match object of the search 
-
-            if match: # Match = true, None = False  
-
-                timestamp_str, action, transaction_id = match.groups() # Creating a tuple from the match object and passing the elemnts in a sequence to the variables 
-
-                timestamp = datetime.strptime(timestamp_str, '%H:%M:%S.%f') # Will create a datetime object from the time that we had in [] timestamp_str (%f represents ms)
-                    
-                if transaction_id not in transactions: # Adding new logs during the iteration
-
-                    transactions[transaction_id] = {}
-                    
-                transactions[transaction_id][action.lower()] = timestamp # .lower() for consistency 
-
-                """
-                # Attaching the datetime object correlated to start/end in each iteration after we have the main id key for the specific transaction 
-                # Creating a dictionary inside a dictionary 
+            if match:  # None is considered False
+                timestamp_str1, transaction_id1, begun, timestamp_str2, done, transaction_id2 = match.groups() 
                 
+                # Creating a tuple from the match object and passing the elements captured with () with REGEX in a sequence to the variables 
+                # If it's a begun line , timestamp_str2, done, transaction_id2 will be None and the ( if begun: ) will be true because it's not None 
 
-                transactions = {
-                    '123': {'start': datetime_object1, 'end': datetime_object2},
-                    '124': {'start': datetime_object3, 'end': datetime_object4},
-                    ...
-                }
+                if begun: 
+                    timestamp = datetime.strptime(timestamp_str1, '%H:%M:%S.%f')  # Will create a datetime object from the time string that we have in timestamp_str (%f represents ms)
+                    transaction_id = transaction_id1
+                    action = 'begun'
 
-                """
+                elif done:
+                    timestamp = datetime.strptime(timestamp_str2, '%H:%M:%S.%f')  # Creating a datetime object from the timestamp string
+                    transaction_id = transaction_id2
+                    action = 'done'
+                
+                if transaction_id not in transactions:  # Adding only new logs during the iteration
+                    transactions[transaction_id] = {}
+                
+                transactions[transaction_id][action] = timestamp  # Adding the datetime object to the dictionary
+                
+                # Example structure of the transactions dictionary:
+                # transactions = {
+                #     '123': {'begun': datetime_object1, 'done': datetime_object2},
+                #     '124': {'begun': datetime_object3, 'done': datetime_object4},
+                #     ...
+                # }
 
     return transactions
 
@@ -63,9 +67,10 @@ def calculate_transaction_times(transactions):
     
     for transaction_id, times in transactions.items():
 
-        if 'start' in times and 'end' in times:
-            duration = (times['end'] - times['start']).total_seconds() * 1000
-            transaction_times[transaction_id] = duration
+        if 'begun' in times and 'done' in times:
+            duration = (times['done'] - times['begun']).total_seconds() * 1000
+
+            transaction_times[transaction_id] = duration # No need to worry about duplicates because the parse_log took care of it
     
     return transaction_times
 
@@ -85,8 +90,6 @@ def calculate_average_transaction_time(transaction_times):
         average_time = None 
 
     return average_time
-
-
 
 
 
@@ -111,3 +114,4 @@ while True: # Iterating endlessly until we decide to stop by pressing q and brea
             print(f"{e}")
     else:
         print("Wrong path, please try again") 
+

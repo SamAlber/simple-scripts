@@ -8,12 +8,17 @@ This script prompts the user for a file path and extracts the lines with an erro
 """
 
 import os 
+import re
+
 
 def count_error_lines(path):
+
+    error_pattern = re.compile(r'^.*ERROR') # Simplified version of error_pattern = re.compile(r'\d{1,2}-\d{1,2}-\d{4} \d{2}:\d{2}:\d{2}\.\d{3}\s+ERROR\b')
+
     count = 0 
     with open(path, 'r') as file:
         for line in file:
-            if 'ERROR' in line:
+            if error_pattern.search(line):
                 count += 1
     return count
 

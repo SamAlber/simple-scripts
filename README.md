@@ -1,3 +1,3 @@
 # Simple Scripts
 
-This repository shows some of my scripts that I created for studying 
+This repository shows some of my scripts for exam.log script format 

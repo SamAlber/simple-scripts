@@ -7,19 +7,23 @@ This script prompts the user for a file path and extracts the number of transati
 + Path check
 """
 import os 
+import re
 
 def count_end_transactions(path):
 
     count_start = 0 
     count_end = 0 
     
+    transaction_start_pattern = re.compile(r'transaction \d+ begun')
+    transaction_end_pattern = re.compile(r'transaction done, id=\d+')
+
     with open(path, 'r') as file:
 
         for line in file:
-            if 'Transaction Start' in line:
+            if transaction_start_pattern.search(line):
                 count_start += 1
             
-            if 'Transaction End' in line:
+            if transaction_end_pattern.search(line):
                 count_end += 1
     
     transactions_count = min(count_start, count_end) # We will take only the successful, so if there are more start than end we will take the end count. 
@@ -43,3 +47,5 @@ while True: # Iterating endlessly until we decide to stop by pressing q and brea
             print(f"{e}")
     else:
         print("Wrong path, please try again") 
+
+
